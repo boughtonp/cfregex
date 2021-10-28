@@ -1,6 +1,6 @@
 <cffunction name="RegexFind" returntype="Array" output="false" >
-	<cfargument name="Pattern"    type="String"  required_ />
-	<cfargument name="Text"       type="String"  required_ />
+	<cfargument name="Pattern"    type="String"  required=true />
+	<cfargument name="Text"       type="String"  required=true />
 	<cfargument name="Start"      type="Numeric" default=1 />
 	<cfargument name="Limit"      type="Numeric" default=0 />
 	<cfargument name="ReturnType" type="String"  default="pos" />

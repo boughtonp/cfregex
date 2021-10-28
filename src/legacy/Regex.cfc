@@ -57,17 +57,17 @@
 	--->
 
 	<cffunction name="onStartTag" returntype="boolean" output=false >
-		<cfargument name="Attributes" type="Struct" required_ />
-		<cfargument name="Caller"     type="Struct" required_ />
+		<cfargument name="Attributes" type="Struct" required=true />
+		<cfargument name="Caller"     type="Struct" required=true />
 
 		<cfreturn true />
 	</cffunction>
 
 
 	<cffunction name="onEndTag" returntype="boolean" output=false >
-		<cfargument name="Attributes" type="Struct" required_ />
-		<cfargument name="Caller"     type="Struct" required_ />
-		<cfargument name="GeneratedContent" type="String" required_ />
+		<cfargument name="Attributes" type="Struct" required=true />
+		<cfargument name="Caller"     type="Struct" required=true />
+		<cfargument name="GeneratedContent" type="String" required=true />
 
 		<cfif StructKeyExists(Arguments.Attributes,'Action')>
 
@@ -146,7 +146,7 @@
 	--->
 
 	<cffunction name="parseModes" returntype="Numeric" output="false" access="private">
-		<cfargument name="ModeList"           type="String"  required_ />
+		<cfargument name="ModeList"           type="String"  required=true />
 		<cfargument name="IgnoreInvalidModes" type="Boolean" default="false"/>
 		<cfset var CurrentMode = ""/>
 		<cfset var ResultMode = 0/>
@@ -175,8 +175,8 @@
 
 
 	<cffunction name="compilePattern" returntype="void" output="false" access="private">
-		<cfargument name="Pattern" type="String" required_ />
-		<cfargument name="Modes"   type="String" required_ />
+		<cfargument name="Pattern" type="String" required=true />
+		<cfargument name="Modes"   type="String" required=true />
 
 		<cfset Variables.PatternText = Arguments.Pattern />
 
@@ -189,7 +189,7 @@
 
 
 	<cffunction name="buildMatchInfo" returntype="Struct" output="false" access="private">
-		<cfargument name="Matcher"    type="any"     required_ />
+		<cfargument name="Matcher"    type="any"     required=true />
 		<cfargument name="PosOffset"  type="Numeric" optional />
 		<cfargument name="GroupNames" type="any"     optional />
 
@@ -239,7 +239,7 @@
 
 
 	<cffunction name="compile" returntype="Regex" output="false" access="public" action>
-		<cfargument name="Pattern" type="String" required_ />
+		<cfargument name="Pattern" type="String" required=true />
 		<cfargument name="Modes"   type="String" default="#Variables.DefaultModes#" />
 		<cfset StructDelete(This,'compile') />
 		<cfset StructDelete(This,'onStartTag') />
@@ -255,7 +255,7 @@
 	--->
 
 	<cffunction name="find" returntype="Array" output="false" access="public" action>
-		<cfargument name="Text"       type="String"  required_  />
+		<cfargument name="Text"       type="String"  required=true  />
 		<cfargument name="Start"      type="Numeric" default=1  />
 		<cfargument name="Limit"      type="Numeric" default=0 />
 		<cfargument name="ReturnType" type="String"  default="pos" />
@@ -303,7 +303,7 @@
 
 
 	<cffunction name="match" returntype="Array" output="false" access="public" action>
-		<cfargument name="Text"         type="String"   required_  />
+		<cfargument name="Text"         type="String"   required=true  />
 		<cfargument name="Start"        type="Numeric"  optional  />
 		<cfargument name="Limit"        type="Numeric"  default=0 />
 		<cfargument name="ReturnType"   type="String"   default="match" hint="match|groups|namedgroups|full" />
@@ -372,7 +372,7 @@
 
 
 	<cffunction name="matches" returntype="any" output="false" access="public" action>
-		<cfargument name="Text"       type="String"  required_ />
+		<cfargument name="Text"       type="String"  required=true />
 		<cfargument name="ReturnType" type="String"  optional hint="exact,partial,start,end,count" />
 
 		<cfif StructKeyExists(Arguments,'ReturnType')>
@@ -477,7 +477,7 @@
 
 
 	<cffunction name="replace" returntype="String" output="false" access="public" action>
-		<cfargument name="Text"         type="String"  required_  />
+		<cfargument name="Text"         type="String"  required=true  />
 		<cfargument name="Replacement"  type="Any"     optional hint="String,Array,Function"/>
 		<cfargument name="Start"        type="Numeric" optional  />
 		<cfargument name="Limit"        type="Numeric" default=0 />
@@ -553,7 +553,7 @@
 
 
 	<cffunction name="split" returntype="Array" output="false" access="public" action>
-		<cfargument name="Text"         type="String"  required_ />
+		<cfargument name="Text"         type="String"  required=true />
 		<cfargument name="Start"        type="Numeric" optional  />
 		<cfargument name="Limit"        type="Numeric" default=0  hint="The maximum number of times a split is made (i.e. limit+1=max array size)"/>
 		<cfargument name="GroupNames"   type="any"     default="" hint="Passed into Callback function if provided" />
@@ -647,10 +647,10 @@
 		See http://docs.cfregex.net/Callbacks.html
 
 		<cffunction name="ReplaceCallback" returntype="String" output="false">
-			<cfargument name="Pos"         type="Numeric" required_  hint="The start position of the match."  />
-			<cfargument name="Len"         type="Numeric" required_  hint="The length of the match."          />
-			<cfargument name="Match"       type="String"  required_  hint="The text of the match."            />
-			<cfargument name="Groups"      type="Array"   required_  hint="Array of group information."       />
+			<cfargument name="Pos"         type="Numeric" required=true  hint="The start position of the match."  />
+			<cfargument name="Len"         type="Numeric" required=true  hint="The length of the match."          />
+			<cfargument name="Match"       type="String"  required=true  hint="The text of the match."            />
+			<cfargument name="Groups"      type="Array"   required=true  hint="Array of group information."       />
 			<cfargument name="NamedGroups" type="Struct"  optional  hint="Struct of named group information." />
 			<cfargument name="Data"        type="Struct"  optional  hint="Struct containing passed-in data." />
 
@@ -659,10 +659,10 @@
 
 
 		<cffunction name="BooleanCallback" returntype="Boolean" output="false">
-			<cfargument name="Pos"         type="Numeric" required_  hint="The start position of the match."  />
-			<cfargument name="Len"         type="Numeric" required_  hint="The length of the match."          />
-			<cfargument name="Match"       type="String"  required_  hint="The text of the match."            />
-			<cfargument name="Groups"      type="Array"   required_  hint="Array of group information."       />
+			<cfargument name="Pos"         type="Numeric" required=true  hint="The start position of the match."  />
+			<cfargument name="Len"         type="Numeric" required=true  hint="The length of the match."          />
+			<cfargument name="Match"       type="String"  required=true  hint="The text of the match."            />
+			<cfargument name="Groups"      type="Array"   required=true  hint="Array of group information."       />
 			<cfargument name="NamedGroups" type="Struct"  optional  hint="Struct of named group information." />
 			<cfargument name="Data"        type="Struct"  optional  hint="Struct containing passed-in data." />
 

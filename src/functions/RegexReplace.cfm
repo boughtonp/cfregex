@@ -1,6 +1,6 @@
 <cffunction name="RegexReplace" returntype="String"  output="false" >
-	<cfargument name="Pattern"      type="String"  required_ />
-	<cfargument name="Text"         type="String"  required_ />
+	<cfargument name="Pattern"      type="String"  required=true />
+	<cfargument name="Text"         type="String"  required=true />
 	<cfargument name="Replacement"  type="Any"     optional hint="String,Array,Function"/>
 	<cfargument name="Start"        type="Numeric" optional  />
 	<cfargument name="Limit"        type="Numeric" default=0 />
