@@ -183,6 +183,8 @@
 
 		<cfset Variables.PatternObject = createObject("java","java.util.regex.Pattern")
 			.compile( Arguments.Pattern , Variables.ActiveModes ) />
+			
+		<cfset StructDelete(Variables,'PatternGroupNames') />
 
 	</cffunction>
 
@@ -215,6 +217,10 @@
 			</cfif>
 		</cfloop>
 
+		<cfif not StructKeyExists(Arguments,'GroupNames') and find('(?<',Variables.PatternText) >
+			<cfset Arguments.GroupNames = extractGroupNames() />
+		</cfif>
+
 		<cfif StructKeyExists(Arguments,'GroupNames')>
 			<cfif isSimpleValue(Arguments.GroupNames)>
 				<cfset Arguments.GroupNames = ListToArray(Arguments.GroupNames) />
@@ -229,6 +235,18 @@
 		</cfif>
 
 		<cfreturn MatchInfo />
+	</cffunction>
+
+
+	<cffunction name="extractGroupNames" returntype="Array" output="false" access="private">
+		<cfif not StructKeyExists(Variables,'PatternGroupNames') >
+			<!--- Need to extract group names from pattern, because Java doesn't provide any Matcher methods for it. --->
+			<!--- The handling of \Q..\E should be improved, but is very rarely used.  --->
+			<cfset Variables.PatternGroupNames = new Regex('(?<=\(\?<)[A-Za-z][A-Za-z0-9]*(?=>)')
+				.match( variables.PatternText.replaceAll('(?<!\\)\\Q([^\\]+|\\(?!E))*+\\E','') )
+				/>
+		</cfif>
+		<cfreturn Variables.PatternGroupNames />
 	</cffunction>
 
 
@@ -306,7 +324,7 @@
 		<cfargument name="Start"        type="Numeric"  optional  />
 		<cfargument name="Limit"        type="Numeric"  default=0 />
 		<cfargument name="ReturnType"   type="String"   default="match" hint="match|groups|namedgroups|full" />
-		<cfargument name="GroupNames"   type="any"      default="" hint="Required if returnType=NamedGroup." />
+		<cfargument name="GroupNames"   type="any"      default="" hint="Required if returnType=NamedGroup and no native named groups in pattern." />
 		<cfargument name="Callback"     type="any"      optional   hint="Function called to determine if a match is included in results." />
 		<cfargument name="CallbackData" type="Struct"   optional   hint="Extra data which is passed in to callback function." />
 
@@ -325,6 +343,12 @@
 
 		<cfif StructKeyExists(Arguments,'GroupNames') AND isSimpleValue(Arguments.GroupNames)>
 			<cfset Arguments.GroupNames = ListToArray(Arguments.GroupNames) />
+		</cfif>
+		<cfif isEmpty(Arguments.GroupNames) and Arguments.ReturnType eq 'namedgroups' and find('(?<',Variables.PatternText) >
+			<cfset Arguments.GroupNames = extractGroupNames() />
+		</cfif>
+		<cfif Arguments.ReturnType eq 'namedgroups' and (not StructKeyExists(Arguments,'GroupNames') or isEmpty(Arguments.GroupNames) )>
+			<cfthrow message="No named groups in pattern, and missing or empty GroupNames argument." />
 		</cfif>
 
 		<cfloop condition="Matcher.find()">
