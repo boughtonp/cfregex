@@ -515,9 +515,10 @@
 				<cfif isSimpleValue(Arguments.Replacement[ReplacePos])>
 					<cfset Matcher.appendReplacement( Results , Arguments.Replacement[ReplacePos] )/>
 				<cfelse>
+					<cfset var CurrentReplaceFunc = Arguments.Replacement[ReplacePos] />
 					<cfset Matcher.appendReplacement
 						( Results
-						, Arguments.Replacement[ReplacePos]( ArgumentCollection=buildMatchInfo(Matcher,Offset,Arguments.GroupNames) , Data = Arguments.CallbackData )
+						, CurrentReplaceFunc( ArgumentCollection=buildMatchInfo(Matcher,Offset,Arguments.GroupNames) , Data = Arguments.CallbackData )
 						)/>
 				</cfif>
 
