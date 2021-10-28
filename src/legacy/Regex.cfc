@@ -378,10 +378,6 @@
 		<cfif StructKeyExists(Arguments,'ReturnType')>
 			<cfset Arguments.ReturnType = LCase(Arguments.ReturnType) />
 
-		<!--- INFO: If no unnamed args, don't waste time checking for them. --->
-		<cfelseif StructCount(arguments) EQ 2>
-			<cfset Arguments.ReturnType = 'exact' />
-
 		<cfelse>
 			<cfif StructKeyExists(Arguments,'Exact') AND Arguments.Exact >
 				<cfset Arguments.ReturnType = "exact" />
