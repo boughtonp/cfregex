@@ -1,4 +1,4 @@
-<!--- cfRegex v0.3-legacy | (c) Peter Boughton | License: LGPLv3 | Website: https://www.sorcerersisle.com/software/cfregex --->
+<!--- cfRegex v0.4-legacy | (c) Peter Boughton | License: LGPLv3 | Website: https://www.sorcerersisle.com/software/cfregex --->
 <cfcomponent output=false >
 
 	<!---
@@ -57,17 +57,17 @@
 	--->
 
 	<cffunction name="onStartTag" returntype="boolean" output=false >
-		<cfargument name="Attributes" type="Struct" required_ />
-		<cfargument name="Caller"     type="Struct" required_ />
+		<cfargument name="Attributes" type="Struct" required=true />
+		<cfargument name="Caller"     type="Struct" required=true />
 
 		<cfreturn true />
 	</cffunction>
 
 
 	<cffunction name="onEndTag" returntype="boolean" output=false >
-		<cfargument name="Attributes" type="Struct" required_ />
-		<cfargument name="Caller"     type="Struct" required_ />
-		<cfargument name="GeneratedContent" type="String" required_ />
+		<cfargument name="Attributes" type="Struct" required=true />
+		<cfargument name="Caller"     type="Struct" required=true />
+		<cfargument name="GeneratedContent" type="String" required=true />
 
 		<cfif StructKeyExists(Arguments.Attributes,'Action')>
 
@@ -146,7 +146,7 @@
 	--->
 
 	<cffunction name="parseModes" returntype="Numeric" output="false" access="private">
-		<cfargument name="ModeList"           type="String"  required_ />
+		<cfargument name="ModeList"           type="String"  required=true />
 		<cfargument name="IgnoreInvalidModes" type="Boolean" default="false"/>
 		<cfset var CurrentMode = ""/>
 		<cfset var ResultMode = 0/>
@@ -175,8 +175,8 @@
 
 
 	<cffunction name="compilePattern" returntype="void" output="false" access="private">
-		<cfargument name="Pattern" type="String" required_ />
-		<cfargument name="Modes"   type="String" required_ />
+		<cfargument name="Pattern" type="String" required=true />
+		<cfargument name="Modes"   type="String" required=true />
 
 		<cfset Variables.PatternText = Arguments.Pattern />
 
@@ -184,12 +184,14 @@
 
 		<cfset Variables.PatternObject = createObject("java","java.util.regex.Pattern")
 			.compile( Arguments.Pattern , Variables.ActiveModes ) />
+			
+		<cfset StructDelete(Variables,'PatternGroupNames') />
 
 	</cffunction>
 
 
 	<cffunction name="buildMatchInfo" returntype="Struct" output="false" access="private">
-		<cfargument name="Matcher"    type="any"     required_ />
+		<cfargument name="Matcher"    type="any"     required=true />
 		<cfargument name="PosOffset"  type="Numeric" optional />
 		<cfargument name="GroupNames" type="any"     optional />
 
@@ -216,6 +218,10 @@
 			</cfif>
 		</cfloop>
 
+		<cfif not StructKeyExists(Arguments,'GroupNames') and find('(?<',Variables.PatternText) >
+			<cfset Arguments.GroupNames = extractGroupNames() />
+		</cfif>
+
 		<cfif StructKeyExists(Arguments,'GroupNames')>
 			<cfif isSimpleValue(Arguments.GroupNames)>
 				<cfset Arguments.GroupNames = ListToArray(Arguments.GroupNames) />
@@ -233,13 +239,25 @@
 	</cffunction>
 
 
+	<cffunction name="extractGroupNames" returntype="Array" output="false" access="private">
+		<cfif not StructKeyExists(Variables,'PatternGroupNames') >
+			<!--- Need to extract group names from pattern, because Java doesn't provide any Matcher methods for it. --->
+			<!--- The handling of \Q..\E should be improved, but is very rarely used.  --->
+			<cfset Variables.PatternGroupNames = new Regex('(?<=\(\?<)[A-Za-z][A-Za-z0-9]*(?=>)')
+				.match( variables.PatternText.replaceAll('(?<!\\)\\Q([^\\]+|\\(?!E))*+\\E','') )
+				/>
+		</cfif>
+		<cfreturn Variables.PatternGroupNames />
+	</cffunction>
+
+
 	<!---
 		/// INTERNAL ///
 	--->
 
 
 	<cffunction name="compile" returntype="Regex" output="false" access="public" action>
-		<cfargument name="Pattern" type="String" required_ />
+		<cfargument name="Pattern" type="String" required=true />
 		<cfargument name="Modes"   type="String" default="#Variables.DefaultModes#" />
 		<cfset StructDelete(This,'compile') />
 		<cfset StructDelete(This,'onStartTag') />
@@ -255,7 +273,7 @@
 	--->
 
 	<cffunction name="find" returntype="Array" output="false" access="public" action>
-		<cfargument name="Text"       type="String"  required_  />
+		<cfargument name="Text"       type="String"  required=true  />
 		<cfargument name="Start"      type="Numeric" default=1  />
 		<cfargument name="Limit"      type="Numeric" default=0 />
 		<cfargument name="ReturnType" type="String"  default="pos" />
@@ -303,11 +321,11 @@
 
 
 	<cffunction name="match" returntype="Array" output="false" access="public" action>
-		<cfargument name="Text"         type="String"   required_  />
+		<cfargument name="Text"         type="String"   required=true  />
 		<cfargument name="Start"        type="Numeric"  optional  />
 		<cfargument name="Limit"        type="Numeric"  default=0 />
 		<cfargument name="ReturnType"   type="String"   default="match" hint="match|groups|namedgroups|full" />
-		<cfargument name="GroupNames"   type="any"      default="" hint="Required if returnType=NamedGroup." />
+		<cfargument name="GroupNames"   type="any"      default="" hint="Required if returnType=NamedGroup and no native named groups in pattern." />
 		<cfargument name="Callback"     type="any"      optional   hint="Function called to determine if a match is included in results." />
 		<cfargument name="CallbackData" type="Struct"   optional   hint="Extra data which is passed in to callback function." />
 
@@ -326,6 +344,12 @@
 
 		<cfif StructKeyExists(Arguments,'GroupNames') AND isSimpleValue(Arguments.GroupNames)>
 			<cfset Arguments.GroupNames = ListToArray(Arguments.GroupNames) />
+		</cfif>
+		<cfif ArrayIsEmpty(Arguments.GroupNames) and Arguments.ReturnType eq 'namedgroups' and find('(?<',Variables.PatternText) >
+			<cfset Arguments.GroupNames = extractGroupNames() />
+		</cfif>
+		<cfif Arguments.ReturnType eq 'namedgroups' and (not StructKeyExists(Arguments,'GroupNames') or ArrayIsEmpty(Arguments.GroupNames) )>
+			<cfthrow message="No named groups in pattern, and missing or empty GroupNames argument." />
 		</cfif>
 
 		<cfloop condition="Matcher.find()">
@@ -372,15 +396,11 @@
 
 
 	<cffunction name="matches" returntype="any" output="false" access="public" action>
-		<cfargument name="Text"       type="String"  required_ />
+		<cfargument name="Text"       type="String"  required=true />
 		<cfargument name="ReturnType" type="String"  optional hint="exact,partial,start,end,count" />
 
 		<cfif StructKeyExists(Arguments,'ReturnType')>
 			<cfset Arguments.ReturnType = LCase(Arguments.ReturnType) />
-
-		<!--- INFO: If no unnamed args, don't waste time checking for them. --->
-		<cfelseif StructCount(arguments) EQ 2>
-			<cfset Arguments.ReturnType = 'exact' />
 
 		<cfelse>
 			<cfif StructKeyExists(Arguments,'Exact') AND Arguments.Exact >
@@ -477,7 +497,7 @@
 
 
 	<cffunction name="replace" returntype="String" output="false" access="public" action>
-		<cfargument name="Text"         type="String"  required_  />
+		<cfargument name="Text"         type="String"  required=true  />
 		<cfargument name="Replacement"  type="Any"     optional hint="String,Array,Function"/>
 		<cfargument name="Start"        type="Numeric" optional  />
 		<cfargument name="Limit"        type="Numeric" default=0 />
@@ -553,7 +573,7 @@
 
 
 	<cffunction name="split" returntype="Array" output="false" access="public" action>
-		<cfargument name="Text"         type="String"  required_ />
+		<cfargument name="Text"         type="String"  required=true />
 		<cfargument name="Start"        type="Numeric" optional  />
 		<cfargument name="Limit"        type="Numeric" default=0  hint="The maximum number of times a split is made (i.e. limit+1=max array size)"/>
 		<cfargument name="GroupNames"   type="any"     default="" hint="Passed into Callback function if provided" />
@@ -619,6 +639,20 @@
 		<cfreturn Results />
 	</cffunction>
 
+	<cffunction name="findPos"          access="public"><cfreturn this.find   (argumentcollection=arguments,returntype='pos')        /></cffunction>
+	<cffunction name="findSub"          access="public"><cfreturn this.find   (argumentcollection=arguments,returntype='sub')        /></cffunction>
+	<cffunction name="findInfo"         access="public"><cfreturn this.find   (argumentcollection=arguments,returntype='info')       /></cffunction>
+	<cffunction name="matchGroups"      access="public"><cfreturn this.match  (argumentcollection=arguments,returntype='groups')     /></cffunction>
+	<cffunction name="matchNamedGroups" access="public"><cfreturn this.match  (argumentcollection=arguments,returntype='namedgroups')/></cffunction>
+	<cffunction name="matchFull"        access="public"><cfreturn this.match  (argumentcollection=arguments,returntype='full')       /></cffunction>
+	<cffunction name="matchesExact"     access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='exact')      /></cffunction>
+	<cffunction name="matchesPartial"   access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='partial')    /></cffunction>
+	<cffunction name="matchesStart"     access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='start')      /></cffunction>
+	<cffunction name="matchesEnd"       access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='end')        /></cffunction>
+	<cffunction name="matchesCount"     access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='count')      /></cffunction>
+	<cffunction name="count"            access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='count')      /></cffunction>
+	<cffunction name="escapeClass"      access="public"><cfreturn this.escape (argumentcollection=arguments,returntype='class')      /></cffunction>
+
 	<!---
 		/// EXTERNAL ///
 	--->
@@ -647,10 +681,10 @@
 		See http://docs.cfregex.net/Callbacks.html
 
 		<cffunction name="ReplaceCallback" returntype="String" output="false">
-			<cfargument name="Pos"         type="Numeric" required_  hint="The start position of the match."  />
-			<cfargument name="Len"         type="Numeric" required_  hint="The length of the match."          />
-			<cfargument name="Match"       type="String"  required_  hint="The text of the match."            />
-			<cfargument name="Groups"      type="Array"   required_  hint="Array of group information."       />
+			<cfargument name="Pos"         type="Numeric" required=true  hint="The start position of the match."  />
+			<cfargument name="Len"         type="Numeric" required=true  hint="The length of the match."          />
+			<cfargument name="Match"       type="String"  required=true  hint="The text of the match."            />
+			<cfargument name="Groups"      type="Array"   required=true  hint="Array of group information."       />
 			<cfargument name="NamedGroups" type="Struct"  optional  hint="Struct of named group information." />
 			<cfargument name="Data"        type="Struct"  optional  hint="Struct containing passed-in data." />
 
@@ -659,10 +693,10 @@
 
 
 		<cffunction name="BooleanCallback" returntype="Boolean" output="false">
-			<cfargument name="Pos"         type="Numeric" required_  hint="The start position of the match."  />
-			<cfargument name="Len"         type="Numeric" required_  hint="The length of the match."          />
-			<cfargument name="Match"       type="String"  required_  hint="The text of the match."            />
-			<cfargument name="Groups"      type="Array"   required_  hint="Array of group information."       />
+			<cfargument name="Pos"         type="Numeric" required=true  hint="The start position of the match."  />
+			<cfargument name="Len"         type="Numeric" required=true  hint="The length of the match."          />
+			<cfargument name="Match"       type="String"  required=true  hint="The text of the match."            />
+			<cfargument name="Groups"      type="Array"   required=true  hint="Array of group information."       />
 			<cfargument name="NamedGroups" type="Struct"  optional  hint="Struct of named group information." />
 			<cfargument name="Data"        type="Struct"  optional  hint="Struct containing passed-in data." />
 
