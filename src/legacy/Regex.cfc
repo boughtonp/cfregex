@@ -1,4 +1,4 @@
-<!--- cfRegex v0.3-legacy | (c) Peter Boughton | License: LGPLv3 | Website: https://www.sorcerersisle.com/software/cfregex --->
+<!--- cfRegex v0.4-legacy | (c) Peter Boughton | License: LGPLv3 | Website: https://www.sorcerersisle.com/software/cfregex --->
 <cfcomponent output=false >
 
 	<!---

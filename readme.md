@@ -1,6 +1,6 @@
 cfRegex
 
-* Version:       0.3
+* Version:       0.4
 * License:       LGPLv3
 * Homepage:      https://www.sorcerersisle.com/software/cfregex
 * Documentation: https://docs.sorcerersisle.com/cfregex
@@ -10,6 +10,7 @@ cfRegex
 
 Description
 -----------
+
 cfRegex is a project to provide a complete set of regex functionality
 for CFML, with an aim to make regex a first-class feature which is
 easy for everyone to use.
