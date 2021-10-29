@@ -638,6 +638,20 @@
 		<cfreturn Results />
 	</cffunction>
 
+	<cffunction name="findPos"          access="public"><cfreturn this.find   (argumentcollection=arguments,returntype='pos')        /></cffunction>
+	<cffunction name="findSub"          access="public"><cfreturn this.find   (argumentcollection=arguments,returntype='sub')        /></cffunction>
+	<cffunction name="findInfo"         access="public"><cfreturn this.find   (argumentcollection=arguments,returntype='info')       /></cffunction>
+	<cffunction name="matchGroups"      access="public"><cfreturn this.match  (argumentcollection=arguments,returntype='groups')     /></cffunction>
+	<cffunction name="matchNamedGroups" access="public"><cfreturn this.match  (argumentcollection=arguments,returntype='namedgroups')/></cffunction>
+	<cffunction name="matchFull"        access="public"><cfreturn this.match  (argumentcollection=arguments,returntype='full')       /></cffunction>
+	<cffunction name="matchesExact"     access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='exact')      /></cffunction>
+	<cffunction name="matchesPartial"   access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='partial')    /></cffunction>
+	<cffunction name="matchesStart"     access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='start')      /></cffunction>
+	<cffunction name="matchesEnd"       access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='end')        /></cffunction>
+	<cffunction name="matchesCount"     access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='count')      /></cffunction>
+	<cffunction name="count"            access="public"><cfreturn this.matches(argumentcollection=arguments,returntype='count')      /></cffunction>
+	<cffunction name="escapeClass"      access="public"><cfreturn this.escape (argumentcollection=arguments,returntype='class')      /></cffunction>
+
 	<!---
 		/// EXTERNAL ///
 	--->
